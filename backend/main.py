@@ -1,5 +1,8 @@
 
 # Step1: Setup FastAPI backend
+import utils.http_session
+import utils.transport
+import utils.session
 from fastapi import FastAPI, Form
 from pydantic import BaseModel
 import uvicorn
