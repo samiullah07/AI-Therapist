@@ -21,6 +21,10 @@ def emergency_call_tool() -> None:
     call_emergency()
 
 
+import googlemaps
+from config import GOOGLE_MAPS_API_KEY
+
+gmap = googlemaps.Client(key=GOOGLE_MAPS_API_KEY)
 @tool
 def find_nearby_therapists_by_location(location: str) -> str:
     """
@@ -32,22 +36,40 @@ def find_nearby_therapists_by_location(location: str) -> str:
     Returns:
         str: A newline-separated string containing therapist names and contact info.
     """
-    return (
-        f"Here are some therapists near {location}, {location}:\n"
-        "- Dr. Ayesha Kapoor - +1 (555) 123-4567\n"
-        "- Dr. James Patel - +1 (555) 987-6543\n"
-        "- MindCare Counseling Center - +1 (555) 222-3333"
-    )
+    map_results = gmap.geocode(location)
+    lat_lng = map_results[0]['geometry']['location']
+    places_result = gmap.places_nearby(location=(lat_lng['lat'], lat_lng['lng']),
+                                          radius=5000,
+                                          keyword='psychatrist')
+    output = [f"Therapists near {location}:\n"]
+    therapists = places_result["results"][:5]
+    for therapist in therapists:
+       name = therapist.get("name", "N/A")
+       address = therapist.get("vicinity", "N/A")
+       details = gmap.place(therapist['place_id'], fields=['formatted_phone_number', 'website'])
+       phone = details.get('result', {}).get('formatted_phone_number', 'N/A')
+
+       output.append(f"Name: {name}\nAddress: {address}\nPhone: {phone}\n")
+    return "\n".join(output)
+
+
+
+
+
 
 
 # Step1: Create an AI Agent & Link to backend
 from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 from langgraph.prebuilt import create_react_agent
-from config import OPENAI_API_KEY
+from config import GROQ_API_KEY
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 tools = [ask_mental_health_specialist, emergency_call_tool, find_nearby_therapists_by_location]
-llm = ChatOpenAI(model="gpt-4", temperature=0.2, api_key=OPENAI_API_KEY)
+llm = ChatGroq(model="openai/gpt-oss-120b", temperature=0.2, api_key=GROQ_API_KEY)
 graph = create_react_agent(llm, tools=tools)
 
 SYSTEM_PROMPT = """

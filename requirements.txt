@@ -1,0 +1,10 @@
+fastapi
+langchain
+langchain-openai
+langgraph
+ollama
+pydantic
+requests
+streamlit
+twilio
+uvicorn
