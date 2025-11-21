@@ -1,8 +1,8 @@
 config.py
 .venv
+uv.lock
+pyproj.toml
 __pycache__/
 *.pyc
 
-uv.lock
-pyproj.toml
 
